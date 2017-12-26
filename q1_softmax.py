@@ -33,7 +33,7 @@ def softmax(x):
     exp_rowSum = tf.reduce_sum(tf.exp(newX),axis=1)
     exp_rowSum = tf.expand_dims(exp_rowSum,1)
     
-    out = tf.exp(newX)/rowSum
+    out = tf.exp(newX)/exp_rowSum
     ### END YOUR CODE
 
     return out

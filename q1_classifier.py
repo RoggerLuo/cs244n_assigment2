@@ -105,10 +105,9 @@ class SoftmaxModel(Model):
         n_features = self.config.n_features 
         n_classes = self.config.n_classes
 
-        data = self.input_placeholder
-        W = tf.Variables(tf.zeros([n_features, n_classes], tf.float32),name='weights')
-        b = tf.Variables(tf.zeros([n_classes], tf.float32),name='biases')
-        pred = softmax(self.input_placeholder * W + b)
+        W = tf.Variable(tf.zeros([n_features, n_classes], tf.float32),name='weights')
+        b = tf.Variable(tf.zeros([n_classes], tf.float32),name='biases')
+        pred = softmax( tf.matmul(self.input_placeholder , W) + b)
         # END YOUR CODE
         return pred
 
@@ -147,6 +146,10 @@ class SoftmaxModel(Model):
             train_op: The Op for training.
         """
         # YOUR CODE HERE
+        optimizer = tf.train.GradientDescentOptimizer(self.config.lr)
+        global_step = tf.Variable(0, name='global_step', trainable=False)
+        train_op = optimizer.minimize(loss,global_step=global_step)
+
         # END YOUR CODE
         return train_op
 
@@ -181,7 +184,7 @@ class SoftmaxModel(Model):
             start_time = time.time()
             average_loss = self.run_epoch(sess, inputs, labels)
             duration = time.time() - start_time
-            print 'Epoch {:}: loss = {:.2f} ({:.3f} sec)'.format(epoch, average_loss, duration)
+            print('Epoch {:}: loss = {:.2f} ({:.3f} sec)'.format(epoch, average_loss, duration))
             losses.append(average_loss)
         return losses
 
@@ -225,7 +228,7 @@ def test_softmax_model():
     # If Ops are implemented correctly, the average loss should fall close to zero
     # rapidly.
     assert losses[-1] < .5
-    print "Basic (non-exhaustive) classifier tests pass"
+    print ("Basic (non-exhaustive) classifier tests pass")
 
 if __name__ == "__main__":
     test_softmax_model()
