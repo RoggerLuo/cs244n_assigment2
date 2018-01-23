@@ -82,59 +82,20 @@ def minibatch_parse(sentences, model, batch_size):
 
     # YOUR CODE HERE
     partial_parses = [PartialParse(sentence) for sentence in sentences]
-    
-    # for index in range(len(partial_parses)):
-    #     print(index)
-    #     each_parse = partial_parses[index]
-    #     print(each_parse.buffer)
-    # print(batch_size)
-
     unfinished_parses = partial_parses[:]
+
     dependencies = []
-
-    indexindex = 0
     while len(unfinished_parses) != 0:
-        print('indexindex%d' %indexindex)
-        indexindex += 1
-
         minibatch = unfinished_parses[0:batch_size]
-        # print(minibatch[0].buffer)
-        # print(minibatch[1].buffer)
-
         transitions = model.predict(minibatch)
-        print(transitions[0])
-        print(transitions[1])
-        # print('unfinished长度',len(unfinished_parses))
-
-        # for index in range(len(minibatch)):
-        #     each_parse = minibatch[index]
-            # print(each_parse.buffer)
-            # print(index)
-
-
         for index in range(len(minibatch)):
             each_parse = minibatch[index]
-            # print(each_parse.buffer)
-            # print(index)
-            # assert type(transitions[index]) == str
-            # print(transitions[index])
             each_parse.parse_step(transitions[index])
-
         for parse in minibatch:
-            if len(parse.buffer) == 0:
-                # print(parse.dependencies)
+            if (len(parse.buffer) == 0) and (len(parse.stack) == 1):
                 dependencies.append(parse.dependencies)
                 unfinished_parses.remove(parse)
 
-        # for index in range(len(minibatch)):
-        #     each_parse = minibatch[index]
-        #     if len(each_parse.buffer) == 0:
-        #         unfinished_parses.remove(each_parse)
-                # minibatch.pop(index)
-
-    # dependencies = [each_parse.dependencies for each_parse in partial_parses]
-
-    
     # END YOUR CODE
     return dependencies
 
@@ -196,11 +157,13 @@ class DummyModel:
     """
 
     def predict(self, partial_parses):
-        # print(len(partial_parses))
-        print(partial_parses[0].buffer)
-        print(partial_parses[1].buffer)
 
-        # print(partial_parses[0].stack[1])
+            # print(len(partial_parses))
+        print('---into predict---')
+        print(partial_parses[0].buffer)
+        # print(partial_parses[1].buffer)
+
+        print(partial_parses[0].stack)
         # print(partial_parses[1].stack[1])
         return [("RA" if pp.stack[1] is "right" else "LA") if len(pp.buffer) == 0 else "S"
                 for pp in partial_parses]
