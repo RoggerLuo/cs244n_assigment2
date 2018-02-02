@@ -81,20 +81,39 @@ def minibatch_parse(sentences, model, batch_size):
     """
 
     # YOUR CODE HERE
+
+    # sentences是一个list，很多个sentence组成
+    # 每个sentence是一个list，由很多word组成
+    # sentences是list的list
     partial_parses = [PartialParse(sentence) for sentence in sentences]
-    unfinished_parses = partial_parses[:]
+    
+    # partialParse这个概念比较奇怪
+    # 只负责维护 stack buffer和dependency，然后负责执行parse，但是用什么方式parse，左还是右却是由外界参数决定
+    unfinished_parses = partial_parses[:] # 浅拷贝一个数组
 
     dependencies = []
     while len(unfinished_parses) != 0:
-        minibatch = unfinished_parses[0:batch_size]
-        transitions = model.predict(minibatch)
-        for index in range(len(minibatch)):
-            each_parse = minibatch[index]
+        # 从list里面取一个小一点的list
+        minibatch_parses = unfinished_parses[0:batch_size] 
+        
+        # model.predict 是配合Partial_parses的抽象接口写的
+        # 传入PartialParse的list，传出这个list对应的transitions
+        transitions = model.predict(minibatch_parses)
+        
+        # 每个partial_parse分别parse前进一步，
+        for index in range(len(minibatch_parses)):
+            each_parse = minibatch_parses[index]
             each_parse.parse_step(transitions[index])
-        for parse in minibatch:
+        
+        # 判断是否parse结束了
+        for parse in minibatch_parses:
+            # buffer为空，stack只剩下root,说明这个句子全部parse完毕了
             if (len(parse.buffer) == 0) and (len(parse.stack) == 1):
-                dependencies.append(parse.dependencies)
                 unfinished_parses.remove(parse)
+        
+        # 顺序需要一致
+        for original_parse in partial_parses:
+            dependencies.append(original_parse.dependencies)
 
     # END YOUR CODE
     return dependencies
@@ -157,14 +176,6 @@ class DummyModel:
     """
 
     def predict(self, partial_parses):
-
-            # print(len(partial_parses))
-        print('---into predict---')
-        print(partial_parses[0].buffer)
-        # print(partial_parses[1].buffer)
-
-        print(partial_parses[0].stack)
-        # print(partial_parses[1].stack[1])
         return [("RA" if pp.stack[1] is "right" else "LA") if len(pp.buffer) == 0 else "S"
                 for pp in partial_parses]
 
